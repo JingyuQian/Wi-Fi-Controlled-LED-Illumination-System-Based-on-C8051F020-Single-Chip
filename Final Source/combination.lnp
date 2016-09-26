@@ -1,0 +1,10 @@
+"main.obj",
+"keypad.obj",
+"initialize.obj",
+"12864.obj",
+"18b20.obj",
+"serial.obj",
+"pwm.obj",
+"adc.obj" 
+TO "combination" 
+RAMSIZE(256) 

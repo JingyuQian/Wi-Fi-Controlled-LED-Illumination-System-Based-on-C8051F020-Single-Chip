@@ -1,0 +1,77 @@
+C51 COMPILER V9.00   PWM                                                                   09/14/2015 21:09:42 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE PWM
+OBJECT MODULE PLACED IN pwm.OBJ
+COMPILER INVOKED BY: D:\Keil\C51\BIN\C51.EXE pwm.c COMPACT BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          /*P2为输出口*/
+   2          #include "include.h"
+   3          sfr led_1=0xfa;
+   4          sfr led_2=0xfb;
+   5          sfr led_3=0xfc;
+   6          sfr led_4=0xfd;
+   7          sfr led_5=0xfe;
+   8          sfr onoff_1=0xda;
+   9          sfr onoff_2=0xdb;
+  10          sfr onoff_3=0xdc;
+  11          sfr onoff_4=0xdd;
+  12          sfr onoff_5=0xde;
+  13          
+  14          
+  15          void led_pwm(uchar command)//0位关，1,2,3,   4为开
+  16          {
+  17   1              uchar id=command/16;
+  18   1              uchar level=command%16;
+  19   1              uchar highvalue;
+  20   1              if(level==0)
+  21   1              {
+  22   2                      switch(id)
+  23   2                      {
+  24   3                              case 1: onoff_1&=0xbf;break;
+  25   3                              case 2: onoff_2&=0xbf;break;
+  26   3                              case 3: onoff_3&=0xbf;break;
+  27   3                              case 4: onoff_4&=0xbf;break;
+  28   3                              case 5: onoff_5&=0xbf;break;
+  29   3                              default: break;
+  30   3                      }
+  31   2              }
+  32   1              else
+  33   1              {
+  34   2                      switch(level)
+  35   2                      {
+  36   3                              case 1:highvalue=FIVEPERCENT;break;
+  37   3                              case 2:highvalue=QUATER;break;
+  38   3                              case 3:highvalue=SIXTY;break;
+  39   3                              case 4:highvalue=ON;break;
+  40   3                              default: break;
+  41   3                      }
+  42   2                      switch(id)
+  43   2                      {
+  44   3                              case 1: led_1=highvalue;onoff_1|=0x40;break;
+  45   3                              case 2: led_2=highvalue;onoff_2|=0x40;break;
+  46   3                              case 3: led_3=highvalue;onoff_3|=0x40;break;
+  47   3                              case 4: led_4=highvalue;onoff_4|=0x40;break;
+  48   3                              case 5: led_5=highvalue;onoff_5|=0x40;break;
+  49   3                      default: break;
+  50   3                      }
+  51   2              }
+  52   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+C51 COMPILER V9.00   PWM                                                                   09/14/2015 21:09:42 PAGE 2   
+
+   CODE SIZE        =    126    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

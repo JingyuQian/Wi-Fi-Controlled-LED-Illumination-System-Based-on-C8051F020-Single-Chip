@@ -1,0 +1,153 @@
+C51 COMPILER V9.00   INITIALIZE                                                            09/14/2015 21:09:41 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE INITIALIZE
+OBJECT MODULE PLACED IN initialize.OBJ
+COMPILER INVOKED BY: D:\Keil\C51\BIN\C51.EXE initialize.c COMPACT BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include "include.h"
+   2          
+   3          void Reset_Sources_Init()//关闭看门狗
+   4          {
+   5   1          WDTCN     = 0xDE;
+   6   1          WDTCN     = 0xAD;
+   7   1      }
+   8          
+   9          void Timer_Init() //timer1工作在8位重装载，生成9600bps波特
+  10          //timer2工作在重装载，为ADC0提供溢出信号
+  11          {
+  12   1          CKCON     = 0x30;
+  13   1          TCON      = 0x40;
+  14   1              TMOD      = 0x22;
+  15   1          TH1       = 0xF4;
+  16   1          T2CON     = 0x04;
+  17   1          RCAP2L    = 0xBF;
+  18   1          TL2       = 0xBf; 
+  19   1      }
+  20          
+  21          void ADC_Init()//使能ADC0，连续跟踪，信号来源于TIMER2，增益0.5，当前引脚AIN0.1
+  22          {
+  23   1          AMX0SL    = 0x01;
+  24   1          ADC0CN    = 0x8C;
+  25   1              ADC0CF    = 0xFE;
+  26   1      }
+  27          
+  28          void Voltage_Reference_Init()//基准电压来自VREF0输入，使能内部参考，不使用温度传感器
+  29          {
+  30   1          REF0CN    = 0x03;
+  31   1      }
+  32          
+  33          void PCA_Init()//初始pwm波全部都是100%占空比
+  34          {
+  35   1          PCA0CN    = 0x40;
+  36   1          PCA0MD    = 0x08;
+  37   1          PCA0CPM0  = 0x42;
+  38   1          PCA0CPM1  = 0x42;
+  39   1          PCA0CPM2  = 0x42;
+  40   1          PCA0CPM3  = 0x42;
+  41   1          PCA0CPM4  = 0x42;
+  42   1      }
+  43          
+  44          void UART_Init()        //启用UART0并允许接收
+  45          {
+  46   1          PCON      = 0x80;
+  47   1          SCON0     = 0x50;
+  48   1      }
+  49          
+  50          void Port_IO_Init()     
+  51          {
+  52   1              // P0.0  -  TX0 (UART0), Push-Pull,  Digital
+  53   1          // P0.1  -  RX0 (UART0), Push-Pull,  Digital
+  54   1          // P0.2  -  CEX0 (PCA),  Push-Pull,  Digital
+  55   1          // P0.3  -  CEX1 (PCA),  Push-Pull,  Digital
+C51 COMPILER V9.00   INITIALIZE                                                            09/14/2015 21:09:41 PAGE 2   
+
+  56   1          // P0.4  -  CEX2 (PCA),  Push-Pull,  Digital
+  57   1          // P0.5  -  CEX3 (PCA),  Push-Pull,  Digital
+  58   1          // P0.6  -  CEX4 (PCA),  Push-Pull,  Digital
+  59   1          // P0.7  -  INT0 (Tmr0), Push-Pull,  Digital
+  60   1      
+  61   1          // P1.0  -  Unassigned,  Open-Drain, Digital
+  62   1          // P1.1  -  Unassigned,  Open-Drain, Digital
+  63   1          // P1.2  -  Unassigned,  Open-Drain, Digital
+  64   1          // P1.3  -  Unassigned,  Open-Drain, Digital
+  65   1          // P1.4  -  Unassigned,  Open-Drain, Digital
+  66   1          // P1.5  -  Unassigned,  Open-Drain, Digital
+  67   1          // P1.6  -  Unassigned,  Push-Pull,  Digital
+  68   1          // P1.7  -  Unassigned,  Open-Drain, Digital
+  69   1      
+  70   1          // P2.0  -  Unassigned,  Open-Drain, Digital
+  71   1          // P2.1  -  Unassigned,  Open-Drain, Digital
+  72   1          // P2.2  -  Unassigned,  Open-Drain, Digital
+  73   1          // P2.3  -  Unassigned,  Open-Drain, Digital
+  74   1          // P2.4  -  Unassigned,  Open-Drain, Digital
+  75   1          // P2.5  -  Unassigned,  Open-Drain, Digital
+  76   1          // P2.6  -  Unassigned,  Open-Drain, Digital
+  77   1          // P2.7  -  Unassigned,  Open-Drain, Digital
+  78   1      
+  79   1          // P3.0  -  Unassigned,  Open-Drain, Digital
+  80   1          // P3.1  -  Unassigned,  Push-Pull,  Digital
+  81   1          // P3.2  -  Unassigned,  Push-Pull,  Digital
+  82   1          // P3.3  -  Unassigned,  Push-Pull,  Digital
+  83   1          // P3.4  -  Unassigned,  Open-Drain, Digital
+  84   1          // P3.5  -  Unassigned,  Open-Drain, Digital
+  85   1          // P3.6  -  Unassigned,  Open-Drain, Digital
+  86   1          // P3.7  -  Unassigned,  Open-Drain, Digital
+  87   1      
+  88   1          P0MDOUT   = 0xFF;
+  89   1          P1MDOUT   = 0x40;
+  90   1          P3MDOUT   = 0x0E;
+  91   1          XBR0      = 0x2C;
+  92   1          XBR1      = 0x04;
+  93   1          XBR2      = 0x40;
+  94   1      }
+  95          
+  96          void Oscillator_Init()//内部晶振16mhz
+  97          {
+  98   1              int i = 0;
+  99   1          OSCXCN    = 0x67;
+ 100   1          for (i = 0; i < 3000; i++);  // Wait 1ms for initialization
+ 101   1          while ((OSCXCN & 0x80) == 0);
+ 102   1          OSCICN    = 0x0B;
+ 103   1      
+ 104   1      }
+ 105          
+ 106          void Interrupts_Init()//开启全局中断，/int0中断以及UART0中断，并全部设置为高优先级；使能ADC0中断
+ 107          {
+ 108   1          IE        = 0x91;
+ 109   1          IP        = 0x11;
+ 110   1              EIE2      = 0x02;
+ 111   1              EIP2      = 0x02;
+ 112   1      }
+ 113          
+ 114          void Init_Device(void)
+ 115          {
+ 116   1          Reset_Sources_Init();
+ 117   1          Timer_Init();
+C51 COMPILER V9.00   INITIALIZE                                                            09/14/2015 21:09:41 PAGE 3   
+
+ 118   1          PCA_Init();
+ 119   1          UART_Init();
+ 120   1          ADC_Init();
+ 121   1          Voltage_Reference_Init();
+ 122   1          Port_IO_Init();
+ 123   1              Init_lcd();
+ 124   1          Oscillator_Init();
+ 125   1          Interrupts_Init();  
+ 126   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    160    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

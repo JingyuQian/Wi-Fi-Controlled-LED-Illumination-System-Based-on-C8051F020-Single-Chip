@@ -1,0 +1,178 @@
+C51 COMPILER V9.00   SERIAL                                                                09/14/2015 21:09:42 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE SERIAL
+OBJECT MODULE PLACED IN serial.OBJ
+COMPILER INVOKED BY: D:\Keil\C51\BIN\C51.EXE serial.c COMPACT BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include "include.h"
+   2          
+   3          uchar idata Buf[20]; //定义接收数据缓存
+   4          uchar idata SendCounter=0;//数组下标变量
+   5          uchar idata UART_command=0;//0代表无请求，1代表改名称，2代表改密码
+   6          uchar idata new_name[20];
+   7          uchar idata new_code[20];
+   8          bit idata send_param=0;
+   9          
+  10          void delay_1s(void)   //误差 -0.000000000125us
+  11          {
+  12   1          unsigned char a,b,c,n;
+  13   1          for(c=217;c>0;c--)
+  14   1              for(b=225;b>0;b--)
+  15   1                  for(a=225;a>0;a--);
+  16   1          for(n=10;n>0;n--);
+  17   1      }
+  18          /*函数名称: void UART_SendData(u8 *data_buf) 串口发送字符串数据*/
+  19          void UART_SendData(uchar *data_buf)
+  20          {
+  21   1              uchar iSendCounter = 0;
+  22   1              
+  23   1              while(data_buf[iSendCounter] != '\0')
+  24   1              {
+  25   2                      SBUF0 = data_buf[iSendCounter]; 
+  26   2                      while(!TI0);  //当这边退出循环之后肯定率先进入中断，而在中断中我不让TI0清零，白跑一次中断，在外面清零
+  27   2              TI0=0;
+  28   2                      iSendCounter++;
+  29   2              } 
+  30   1      }
+  31          
+  32          void UART_SendH(uchar data_buf)
+  33          {
+  34   1              SBUF0 = data_buf;       
+  35   1              while(!TI0);
+  36   1          TI0=0;
+  37   1      }
+  38          
+  39          void UART_Process(void)
+  40          {
+  41   1              uchar send_ssid[45]={"AT+WAP=11BGN,"};
+  42   1              uchar send_password[45]={"AT+WAKEY=WPA2PSK,AES,"};
+  43   1              uchar pre_send[]={"AT+WMODE=AP\n"};
+  44   1              UART_SendData("+++");
+  45   1              delay_1s();
+  46   1              UART_SendData("a");
+  47   1              delay_1s();
+  48   1              UART_SendData(pre_send);
+  49   1              delay_1s();
+  50   1              if(UART_command==1)//改SSID
+  51   1              {
+  52   2                      strcat(send_ssid,new_name);
+  53   2                      strcat(send_ssid,",CH1\n");
+  54   2                      UART_SendData(send_ssid);
+  55   2              }
+C51 COMPILER V9.00   SERIAL                                                                09/14/2015 21:09:42 PAGE 2   
+
+  56   1              if(UART_command==2)        //改密码
+  57   1              {
+  58   2                      strcat(send_password,new_code);
+  59   2                      strcat(send_password,"\n");
+  60   2                      UART_SendData(send_password);
+  61   2              }
+  62   1              //}             
+  63   1              delay_1s();
+  64   1              UART_SendData("AT+Z\n");
+  65   1              delay_1s();
+  66   1                      
+  67   1              //}
+  68   1              UART_command=0;//置0表示一次信息处理结束
+  69   1      
+  70   1              write_cmd(0x01);
+  71   1              lcd_pos(1,0);
+  72   1              dis_string(dis24);
+  73   1              lcd_pos(2,0);
+  74   1              dis_string(dis25);
+  75   1              delay(50000);delay(50000);delay(50000);
+  76   1              screen_draw();
+  77   1      }
+  78          
+  79          /*UART接收中断程序*/
+  80          void Serial_Interrupt() interrupt 4//收进来的数据可能有如下几种:控灯的数据、进入透明传输、改密码、改ID时从
+             -wifi芯片传回来的数据 
+  81          {
+  82   1              uchar id,level;
+  83   1              uchar i;
+  84   1              if(RI0==1)// 接收来自串口的信息
+  85   1              {           
+  86   2              RI0=0; //软件清除接收中断
+  87   2                      if(SendCounter==21) SendCounter=0;
+  88   2                      Buf[SendCounter]=SBUF0; //取数据
+  89   2                      SendCounter++;//数组下标自增，使下一个接收数据存到数组的下一位置
+  90   2      
+  91   2              }
+  92   1              //如果是控灯，则直接在中断函数处理，当前需要利用两位数据进行灯的控制
+  93   1              if((Buf[0]==0x01)&&(SendCounter==2))//当发现收了两数据且第一字节0x01的时候，意味着要调灯
+  94   1              {
+  95   2                      led_pwm(Buf[1]);//调用pwm控制函数对灯进行控制
+  96   2                      id=Buf[1]/16; //得到被控制灯的id
+  97   2                      level=Buf[1]%16;//得到被控制灯的目标亮度
+  98   2                      led_select=id-1;          //修改当前选中的灯
+  99   2                      led[led_select]=level;                                  //修改当前选中灯的亮度
+ 100   2                      if((screen_present==1)&&(screen_level==1))
+ 101   2                      {
+ 102   3                              lcd_pos(3,0);
+ 103   3                              dis_led();
+ 104   3                      }
+ 105   2                      SendCounter=0;
+ 106   2              }
+ 107   1              if((Buf[0]==0x02)&&(SendCounter==21))
+ 108   1              {
+ 109   2                      for (i=0; i<20; i++)
+ 110   2                      {
+ 111   3                              if(Buf[i+1]!='\0')
+ 112   3                              {
+ 113   4                                      new_name[i]=Buf[i+1];
+ 114   4                              }
+ 115   3                              else break;
+ 116   3                      }
+C51 COMPILER V9.00   SERIAL                                                                09/14/2015 21:09:42 PAGE 3   
+
+ 117   2                      UART_command=1;
+ 118   2                      SendCounter=0;
+ 119   2                      write_cmd(0x01);lcd_pos(0,0);dis_string(dis26);
+ 120   2                      delay(50000);
+ 121   2              }
+ 122   1              if((Buf[0]==0x03)&&(SendCounter==21))
+ 123   1              {
+ 124   2                      for (i=0; i<20; i++)
+ 125   2                      {
+ 126   3                              if(Buf[i+1]!='\0')
+ 127   3                              {
+ 128   4                                      new_code[i]=Buf[i+1];
+ 129   4                              }
+ 130   3                              else break;
+ 131   3                      }
+ 132   2                      UART_command=2;
+ 133   2                      SendCounter=0;
+ 134   2                      write_cmd(0x01);lcd_pos(0,0);dis_string(dis26);
+ 135   2                      delay(50000);
+ 136   2              }
+ 137   1              if(Buf[0]==0x04)
+ 138   1              {
+ 139   2                      send_param=1;
+ 140   2                      SendCounter=0;
+ 141   2              }
+ 142   1              if(Buf[0]==0x05)
+ 143   1              {
+ 144   2                      send_param=0;
+ 145   2                      SendCounter=0;
+ 146   2              }
+ 147   1      }
+ 148          
+ 149          
+ 150          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    698    ----
+   CONSTANT SIZE    =    123    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----     107
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =     62    ----
+   BIT SIZE         =      1    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

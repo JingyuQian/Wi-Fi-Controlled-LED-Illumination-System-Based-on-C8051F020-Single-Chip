@@ -1,0 +1,130 @@
+C51 COMPILER V9.00   MAIN                                                                  09/14/2015 21:09:41 PAGE 1   
+
+
+C51 COMPILER V9.00, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.OBJ
+COMPILER INVOKED BY: D:\Keil\C51\BIN\C51.EXE main.c COMPACT BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include "include.h"
+   2          
+   3          //2015Äê6ÔÂ29ÈÕ17:43:06¡£P7¿ÚÎª¾ØÕó¼üÅÌ¿Ú£¬P0.7¿ÚÎª¾ØÕó¼üÅÌÌá¹©ÖÐ¶Ï¡£P6¿ÚÎªLCDµÄÊý¾Ý¿Ú£¬P5µÄ¸ßÎ»¿ÚÎªLCDµÄ¿
+             -ØÖÆ¶Ë¿Ú¡£
+   4          //µ±Ç°ÏµÍ³Ê±ÖÓ22.1184MHz
+   5          //²¨ÌØÂÊ115200bps
+   6          //¿ÉÒÔ¸ÄÃû³ÆºÍÃÜÂë¡£qiandashuaier  Summer123456
+   7          //µ±Ç°×îÖÕ°æ¡£¿ÉÕý³£ÔËÐÐ¡£
+   8          #define CYCLE 1200
+   9          sbit LED0=P3^1;
+  10          sbit LED1=P3^2;
+  11          sbit LED2=P3^3;
+  12          uchar i;
+  13          void Dbreathe(uint t)
+  14          {
+  15   1              while(--t);
+  16   1      }
+  17          void main()
+  18          {
+  19   1              uint PWM_LOW=0;
+  20   1              Init_Device();
+  21   1              delay(400);
+  22   1              screen_draw();
+  23   1              P7=0xf0;
+  24   1              LED0=0;LED1=0;LED2=0;
+  25   1              while(1)//·ÅÈëÔÚÌØ¶¨ÉèÖÃÏÂÐèÒªÑ­»·²âÊÔµÄ´úÂë
+  26   1              {
+  27   2                       
+  28   2                       if((pwm_on==1)&&(screen_present==0))
+  29   2                       {
+  30   3                              if(breathe_now==0)
+  31   3                              {
+  32   4                                      LED0=1;LED1=0;LED2=0;
+  33   4                                      Dbreathe(6000);    
+  34   4                                      for(PWM_LOW=1;PWM_LOW<CYCLE;PWM_LOW++)
+  35   4                                      { 
+  36   5                                              LED0=0;Dbreathe(PWM_LOW);LED0=1;Dbreathe((CYCLE-PWM_LOW));
+  37   5                                      }
+  38   4                                      LED0=0;
+  39   4                                      Dbreathe(6000);Dbreathe(6000);Dbreathe(6000);
+  40   4                                      for(PWM_LOW=CYCLE-1;PWM_LOW>0;PWM_LOW--)
+  41   4                                      { 
+  42   5                                              LED0=0;Dbreathe(PWM_LOW);LED0=1;Dbreathe(CYCLE-PWM_LOW);
+  43   5                                      }
+  44   4                              }
+  45   3                              if(breathe_now==1)
+  46   3                              {
+  47   4                                      LED1=1;LED2=0;LED0=0;Dbreathe(6000);    
+  48   4                                      for(PWM_LOW=1;PWM_LOW<CYCLE;PWM_LOW++)
+  49   4                                      { 
+  50   5                                              LED1=0;Dbreathe(PWM_LOW);LED1=1;Dbreathe((CYCLE-PWM_LOW));
+  51   5                                      }
+  52   4                                      LED1=0;
+  53   4                                      Dbreathe(6000); Dbreathe(6000);Dbreathe(6000);
+  54   4                                      for(PWM_LOW=CYCLE-1;PWM_LOW>0;PWM_LOW--)
+C51 COMPILER V9.00   MAIN                                                                  09/14/2015 21:09:41 PAGE 2   
+
+  55   4                                      { 
+  56   5                                              LED1=0;Dbreathe(PWM_LOW);LED1=1;Dbreathe(CYCLE-PWM_LOW);
+  57   5                                      }
+  58   4                              }
+  59   3                              if(breathe_now==2)
+  60   3                              {
+  61   4                                      LED2=1;LED1=0;LED0=0;
+  62   4                                      Dbreathe(6000);    
+  63   4                                      for(PWM_LOW=1;PWM_LOW<CYCLE;PWM_LOW++)
+  64   4                                      { 
+  65   5                                              LED2=0;Dbreathe(PWM_LOW);LED2=1;Dbreathe((CYCLE-PWM_LOW));
+  66   5                                      }
+  67   4                                      LED2=0;
+  68   4                                      Dbreathe(6000);Dbreathe(6000);Dbreathe(6000);
+  69   4                                      for(PWM_LOW=CYCLE-1;PWM_LOW>0;PWM_LOW--)
+  70   4                                      { 
+  71   5                                              LED2=0;Dbreathe(PWM_LOW);LED2=1;Dbreathe(CYCLE-PWM_LOW);
+  72   5                                      }
+  73   4                              }       
+  74   3                      }
+  75   2                      else
+  76   2                      {
+  77   3                              LED0=0;
+  78   3                              LED1=0;
+  79   3                              LED2=0;
+  80   3                      }
+  81   2                      if(UART_command!=0)
+  82   2                      {
+  83   3                              UART_Process();         
+  84   3                      }
+  85   2                      if(send_param==1)
+  86   2                      {
+  87   3                              for(i=0;i<5;i++)
+  88   3                              {
+  89   4                                      UART_SendH(led[i]%16);
+  90   4                                      UART_SendH(0x01);
+  91   4                                      UART_SendH(volt[i]/1000);
+  92   4                                      UART_SendH((volt[i]%1000)/10);
+  93   4                                      UART_SendH(current[i]/10);
+  94   4                                      UART_SendH(current[i]%10);
+  95   4                                      UART_SendH(power[i]/10);
+  96   4                                      UART_SendH(power[i]%10);
+  97   4                              }
+  98   3                              UART_SendH(temperature/10);
+  99   3                              UART_SendH(temperature%10);
+ 100   3                              delay_1s();
+ 101   3                              //delay_1s();
+ 102   3                      }       
+ 103   2              }
+ 104   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    745    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =      1       2
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
